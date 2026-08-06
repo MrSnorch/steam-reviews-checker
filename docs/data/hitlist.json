@@ -1,0 +1,137 @@
+{
+  "generated_at": "2026-08-06T13:22:12Z",
+  "appid": "4369490",
+  "top_suspicious": [
+    {
+      "recommendationid": "231007798",
+      "steamid": "76561198044464136",
+      "profile_url": "https://steamcommunity.com/profiles/76561198044464136",
+      "suspicion_score": 60,
+      "suspicion_reasons": [
+        "positive_under_30min",
+        "prolific_reviewer_few_games",
+        "posted_during_review_burst"
+      ],
+      "voted_up": true,
+      "playtime_at_review_minutes": 15,
+      "timestamp_created": 1784669674,
+      "review_excerpt": "Game honestly is genuinely cool reviews are from a niche community offended they pivoted to not being an NFT game anymore... lol enough said there. And its an indie MMO so server issues make sense on "
+    },
+    {
+      "recommendationid": "231020618",
+      "steamid": "76561198245015626",
+      "profile_url": "https://steamcommunity.com/profiles/76561198245015626",
+      "suspicion_score": 45,
+      "suspicion_reasons": [
+        "positive_under_1h",
+        "prolific_reviewer_few_games",
+        "posted_during_review_burst"
+      ],
+      "voted_up": true,
+      "playtime_at_review_minutes": 59,
+      "timestamp_created": 1784685710,
+      "review_excerpt": "I don't feel scammed yet....."
+    },
+    {
+      "recommendationid": "231014216",
+      "steamid": "76561198162565031",
+      "profile_url": "https://steamcommunity.com/profiles/76561198162565031",
+      "suspicion_score": 45,
+      "suspicion_reasons": [
+        "positive_under_1h",
+        "prolific_reviewer_few_games",
+        "posted_during_review_burst"
+      ],
+      "voted_up": true,
+      "playtime_at_review_minutes": 55,
+      "timestamp_created": 1784677007,
+      "review_excerpt": "Well.. as every ♥♥♥♥♥♥ mmo that is released, you will have mostly negative reviews in the release. Nothing new there. Difference here is something related to a possible scam... well... game is relativ"
+    },
+    {
+      "recommendationid": "231112534",
+      "steamid": "76561198133482835",
+      "profile_url": "https://steamcommunity.com/profiles/76561198133482835",
+      "suspicion_score": 40,
+      "suspicion_reasons": [
+        "prolific_reviewer_few_games",
+        "posted_during_review_burst",
+        "low_effort_text"
+      ],
+      "voted_up": true,
+      "playtime_at_review_minutes": 238,
+      "timestamp_created": 1784804921,
+      "review_excerpt": "bom demais"
+    },
+    {
+      "recommendationid": "231035770",
+      "steamid": "76561198033510015",
+      "profile_url": "https://steamcommunity.com/profiles/76561198033510015",
+      "suspicion_score": 40,
+      "suspicion_reasons": [
+        "prolific_reviewer_few_games",
+        "posted_during_review_burst",
+        "private_profile"
+      ],
+      "voted_up": true,
+      "playtime_at_review_minutes": 910,
+      "timestamp_created": 1784709359,
+      "review_excerpt": "I am new to this game, don't know it's history.\n\n- To the Crypto Bros -\n\nIf they tried something with Crypto, you gave them some money, and it didn't make it... Well, sorry you feel like you got scamm"
+    },
+    {
+      "recommendationid": "231017274",
+      "steamid": "76561198685859218",
+      "profile_url": "https://steamcommunity.com/profiles/76561198685859218",
+      "suspicion_score": 40,
+      "suspicion_reasons": [
+        "positive_under_30min",
+        "posted_during_review_burst"
+      ],
+      "voted_up": true,
+      "playtime_at_review_minutes": 22,
+      "timestamp_created": 1784681171,
+      "review_excerpt": "I have no idea about the devs, the nfts etc. I have gone like years without getting hooked to an RPG, this is the first RPG I've been hooked too.\n\nThe voice overs, the mechanics, the graphics, the int"
+    },
+    {
+      "recommendationid": "231005238",
+      "steamid": "76561198452066085",
+      "profile_url": "https://steamcommunity.com/profiles/76561198452066085",
+      "suspicion_score": 40,
+      "suspicion_reasons": [
+        "positive_under_30min",
+        "posted_during_review_burst"
+      ],
+      "voted_up": true,
+      "playtime_at_review_minutes": 10,
+      "timestamp_created": 1784666958,
+      "review_excerpt": " kann ich nur weiter empfehlen"
+    },
+    {
+      "recommendationid": "230978950",
+      "steamid": "76561198108112660",
+      "profile_url": "https://steamcommunity.com/profiles/76561198108112660",
+      "suspicion_score": 40,
+      "suspicion_reasons": [
+        "positive_under_30min",
+        "posted_during_review_burst"
+      ],
+      "voted_up": true,
+      "playtime_at_review_minutes": 9,
+      "timestamp_created": 1784641906,
+      "review_excerpt": "Всем привет! думаю без ВПН не стоит тратить деньги!"
+    },
+    {
+      "recommendationid": "230978403",
+      "steamid": "76561198102833962",
+      "profile_url": "https://steamcommunity.com/profiles/76561198102833962",
+      "suspicion_score": 40,
+      "suspicion_reasons": [
+        "positive_under_30min",
+        "posted_during_review_burst"
+      ],
+      "voted_up": true,
+      "playtime_at_review_minutes": 11,
+      "timestamp_created": 1784641330,
+      "review_excerpt": "пиздата, не могу кусты сорвать, тупо не дает и взаимодействия ломает, что не могу шевелится"
+    }
+  ]
+}
