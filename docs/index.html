@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REVIEW WATCH — Steam review forensics</title>
+<meta name="description" content="Отслеживание накрутки и подозрительных отзывов Steam: анализ playtime, дубликатов текста и всплесков активности.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <span class="dot"></span>
+      <div>
+        <h1>Review Watch</h1>
+        <div class="sub" id="appname-sub">steam review forensics</div>
+      </div>
+    </div>
+    <div class="meta">
+      <div id="generated-at">—</div>
+      <div id="appid-line">appid —</div>
+      <form class="appid-form" id="appid-form" title="Просмотреть снапшот для другого appid, если он есть в docs/data/">
+        <input type="text" id="appid-input" placeholder="appid (по умолчанию latest.json)">
+        <button type="submit">Открыть</button>
+      </form>
+    </div>
+  </header>
+
+  <div id="loading" class="loading">Загружаю данные…</div>
+  <div id="error" class="error" style="display:none;"></div>
+
+  <div id="content" style="display:none;">
+
+    <section class="stats" id="stats-grid"></section>
+
+    <section class="panel" id="steam-crosscheck-panel" style="display:none;">
+      <h2>Сверка с официальными данными Steam</h2>
+      <p class="desc">Независимая проверка: то, что считает сам Steam по <b>всем</b> отзывам игры, а не только по собранной нами выборке. Если наша выборка сильно расходится с этим — значит либо сбор не полный, либо ситуация резко изменилась совсем недавно.</p>
+      <div id="steam-crosscheck-grid" class="stats" style="margin-bottom:0;"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head-row">
+        <div>
+          <h2>Playtime lie-detector</h2>
+          <p class="desc">Распределение «сколько часов было наиграно на момент отзыва» отдельно для положительных и отрицательных отзывов. Если у зелёной (позитив) кривой аномально много отзывов слева от порога — это и есть люди, хвалящие игру, в которую почти не играли.</p>
+        </div>
+      </div>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--green)"></i>Положительные</span>
+        <span><i class="sw" style="background:var(--red)"></i>Отрицательные</span>
+      </div>
+      <div class="histogram-wrap">
+        <svg id="histogram" viewBox="0 0 900 280" preserveAspectRatio="none" style="width:100%;height:280px;display:block;"></svg>
+      </div>
+      <div class="threshold-control">
+        <span>Порог подозрительности:</span>
+        <input type="range" id="threshold-slider" min="0" max="600" value="60" step="5">
+        <span class="val" id="threshold-val">60 мин</span>
+        <span id="threshold-count" style="margin-left:auto;"></span>
+      </div>
+    </section>
+
+    <section class="panel" id="history-panel" style="display:none;">
+      <h2>История метрик по снапшотам</h2>
+      <p class="desc">Как менялись % позитивных отзывов и число подозрительных с каждым запуском сбора данных. Полезно, чтобы увидеть момент начала накрутки, а не только текущее состояние.</p>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--green)"></i>% позитивных</span>
+        <span><i class="sw" style="background:var(--red)"></i>Подозрительные (score≥40)</span>
+      </div>
+      <svg id="history-chart" viewBox="0 0 900 220" preserveAspectRatio="none" style="width:100%;height:220px;display:block;"></svg>
+    </section>
+
+    <div class="grid-2">
+      <section class="panel">
+        <h2>Динамика по дням</h2>
+        <p class="desc">Всплески объёма — типичный признак ревью-бомбинга или скоординированной накрутки.</p>
+        <svg id="timeline" viewBox="0 0 560 220" preserveAspectRatio="none" style="width:100%;height:220px;display:block;"></svg>
+      </section>
+      <section class="panel">
+        <h2>Причины флагов</h2>
+        <p class="desc">Из чего складывается suspicion score по датасету.</p>
+        <svg id="reasons" viewBox="0 0 560 220" preserveAspectRatio="none" style="width:100%;height:220px;display:block;"></svg>
+      </section>
+    </div>
+
+    <section class="panel">
+      <div class="panel-head-row">
+        <div>
+          <h2>Все отзывы</h2>
+          <p class="desc">Полная таблица с фильтрами и сортировкой. Клик по строке — разворачивает текст и метаданные.</p>
+        </div>
+        <button class="csv-btn" id="export-csv">Экспорт CSV (текущий фильтр)</button>
+      </div>
+
+      <div class="filters">
+        <div class="field">
+          <label>Тип</label>
+          <div class="chip-toggle" id="filter-vote">
+            <button class="chip active" data-val="all">Все</button>
+            <button class="chip active" data-val="up">Позитив</button>
+            <button class="chip active" data-val="down">Негатив</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Playtime bucket</label>
+          <select id="filter-bucket">
+            <option value="">Любой</option>
+            <option value="<1h">&lt;1ч</option>
+            <option value="1-5h">1–5ч</option>
+            <option value="5-20h">5–20ч</option>
+            <option value="20-100h">20–100ч</option>
+            <option value="100h+">100ч+</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Мин. suspicion score</label>
+          <input type="number" id="filter-minscore" min="0" max="100" value="0" style="width:80px;">
+        </div>
+        <div class="field">
+          <label>Только</label>
+          <div class="chip-toggle">
+            <button class="chip danger" id="filter-suspicious-only" data-val="suspicious">🚩 Подозрительные</button>
+            <button class="chip" id="filter-free-only" data-val="free">Free key</button>
+            <button class="chip" id="filter-dupe-only" data-val="dupe">Дубли текста</button>
+            <button class="chip" id="filter-edited-only" data-val="edited">Отредактировано позже</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Поиск по тексту</label>
+          <input type="text" id="filter-search" placeholder="подстрока…">
+        </div>
+        <button class="reset-link" id="filter-reset">сбросить фильтры</button>
+      </div>
+
+      <div class="result-count" id="result-count"></div>
+
+      <div class="table-scroll">
+        <table class="reviews">
+          <thead>
+            <tr>
+              <th data-sort="timestamp_created">Дата <span class="arrow"></span></th>
+              <th data-sort="voted_up">Тип <span class="arrow"></span></th>
+              <th data-sort="playtime_at_review">Playtime <span class="arrow"></span></th>
+              <th data-sort="suspicion_score">Score <span class="arrow"></span></th>
+              <th>Флаги</th>
+              <th>Текст</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+
+      <div class="pagination" id="pagination"></div>
+    </section>
+
+  </div>
+
+  <footer>
+    Данные собираются автоматически из публичного Steam appreviews API по расписанию GitHub Actions.
+    Suspicion score — эвристика (playtime на момент отзыва, free-ключи, повторяющийся текст, всплески активности, паттерны аккаунта), а не доказательство накрутки: проверяйте отмеченные отзывы вручную.
+    <br>
+    <a href="https://github.com/" id="repo-link" target="_blank" rel="noopener">Исходники и скрипты сбора данных на GitHub</a>
+  </footer>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+name: Fetch Steam reviews
+
+on:
+  schedule:
+    # every 12 hours; adjust as needed (UTC)
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
+    inputs:
+      appid:
+        description: 'Steam appid to fetch (overrides repo variable STEAM_APPID)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fetch-reviews
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Resolve appid / appname
+        id: cfg
+        run: |
+          APPID="${{ github.event.inputs.appid }}"
+          if [ -z "$APPID" ]; then
+            APPID="${{ vars.STEAM_APPID }}"
+          fi
+          if [ -z "$APPID" ]; then
+            echo "No appid provided. Set repo variable STEAM_APPID (Settings > Secrets and variables > Actions > Variables) or pass one via workflow_dispatch." >&2
+            exit 1
+          fi
+          echo "appid=$APPID" >> "$GITHUB_OUTPUT"
+          echo "appname=${{ vars.STEAM_APPNAME }}" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch reviews
+        run: |
+          mkdir -p tmp
+          python scripts/fetch_reviews.py \
+            --appid "${{ steps.cfg.outputs.appid }}" \
+            --out tmp/raw_reviews.json \
+            --sleep 1.2 \
+            --report-out tmp/report_fetch.json
+
+      - name: Fetch Steam's own official summary (cross-check + velocity)
+        if: always()
+        run: |
+          mkdir -p tmp
+          python scripts/fetch_steam_summary.py \
+            --appid "${{ steps.cfg.outputs.appid }}" \
+            --out tmp/steam_summary.json \
+            --report-out tmp/report_steam.json
+
+      - name: Enrich with account data (optional, requires STEAM_WEB_API_KEY secret)
+        if: always()
+        env:
+          STEAM_WEB_API_KEY: ${{ secrets.STEAM_WEB_API_KEY }}
+        run: |
+          if [ ! -f tmp/raw_reviews.json ]; then
+            echo "tmp/raw_reviews.json missing (fetch step failed before writing it), skipping"
+            exit 0
+          fi
+          python scripts/enrich_accounts.py \
+            --in tmp/raw_reviews.json \
+            --out tmp/enriched_reviews.json \
+            --sleep 0.6 \
+            --report-out tmp/report_enrich.json
+
+      - name: Analyze reviews
+        if: always()
+        run: |
+          if [ ! -f tmp/enriched_reviews.json ]; then
+            echo "tmp/enriched_reviews.json missing, skipping"
+            exit 0
+          fi
+          python scripts/analyze.py \
+            --in tmp/enriched_reviews.json \
+            --out tmp/analyzed_reviews.json \
+            --report-out tmp/report_analyze.json
+
+      - name: Build snapshot for site
+        if: always()
+        run: |
+          if [ ! -f tmp/analyzed_reviews.json ]; then
+            echo "tmp/analyzed_reviews.json missing, skipping"
+            exit 0
+          fi
+          python scripts/build_snapshot.py \
+            --in tmp/analyzed_reviews.json \
+            --appid "${{ steps.cfg.outputs.appid }}" \
+            --appname "${{ steps.cfg.outputs.appname }}" \
+            --latest-out docs/data/latest.json \
+            --snapshot-dir docs/data/snapshots \
+            --steam-summary tmp/steam_summary.json \
+            --report-out tmp/report_snapshot.json
+
+      - name: Commit and push updated data
+        if: always()
+        run: |
+          if git check-ignore -q docs/data; then
+            echo "::error::docs/data is being ignored by .gitignore! Fix .gitignore (should not contain a bare 'data/' line) and rerun." 
+            exit 1
+          fi
+          git config user.name "review-watch-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -f docs/data
+          if git diff --cached --quiet; then
+            echo "No data changes to commit."
+          else
+            git commit -m "chore: update review data ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+            git push
+          fi
+
+      - name: Write job summary
+        if: always()
+        run: |
+          python scripts/write_summary.py \
+            --fetch tmp/report_fetch.json \
+            --enrich tmp/report_enrich.json \
+            --analyze tmp/report_analyze.json \
+            --snapshot tmp/report_snapshot.json \
+            --steam-summary tmp/report_steam.json \
+            >> "$GITHUB_STEP_SUMMARY"
