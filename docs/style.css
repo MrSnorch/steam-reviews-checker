@@ -474,6 +474,25 @@ tr.detail-row td {
 }
 .detail-meta a { color: var(--green); }
 .detail-reasons { margin-top: 10px; }
+.detail-dev-response {
+  margin-top: 16px;
+  padding: 10px 12px;
+  border-left: 2px solid var(--green-dim);
+  background: rgba(62, 213, 152, 0.06);
+  border-radius: 4px;
+}
+.detail-dev-response-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--green);
+  margin-bottom: 4px;
+}
+.detail-dev-response-text {
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  color: var(--text-dim);
+}
 @media (max-width: 700px) {
   .detail-grid { grid-template-columns: 1fr; }
 }

@@ -17,6 +17,7 @@ const state = {
     freeOnly: false,
     dupeOnly: false,
     editedOnly: false,
+    devResponseOnly: false,
     search: '',
   },
 };
@@ -153,6 +154,10 @@ function renderStats(summary) {
     {
       label: 'Сильно подозрительные', value: summary.highly_suspicious_count, cls: 'amber',
       sub: 'score ≥ 60',
+    },
+    {
+      label: 'С ответом разработчика', value: summary.dev_response_count || 0, cls: 'green',
+      sub: summary.total_reviews ? `${Math.round(100 * (summary.dev_response_count || 0) / summary.total_reviews)}% от всех` : '',
     },
   ];
 
@@ -409,6 +414,7 @@ function passesFilters(r) {
   if (f.freeOnly && !r.received_for_free) return false;
   if (f.dupeOnly && (!r.duplicate_cluster_size || r.duplicate_cluster_size < 2)) return false;
   if (f.editedOnly && !(r.suspicion_reasons || []).includes('edited_days_later')) return false;
+  if (f.devResponseOnly && !r.developer_response) return false;
   if (f.search) {
     const s = f.search.toLowerCase();
     if (!(r.review || '').toLowerCase().includes(s)) return false;
@@ -483,6 +489,7 @@ function rowHtml(r) {
   if ((r.suspicion_reasons || []).includes('posted_during_review_burst')) tags.push('<span class="tag">BURST</span>');
   if ((r.suspicion_reasons || []).includes('prolific_reviewer_few_games')) tags.push('<span class="tag">FARM?</span>');
   if ((r.suspicion_reasons || []).includes('edited_days_later')) tags.push('<span class="tag">EDITED</span>');
+  if (r.developer_response) tags.push('<span class="tag" style="color:var(--green);border-color:var(--green-dim);">💬 DEV REPLY</span>');
 
   return `
     <tr class="${flagged ? 'flagged' : ''}" data-rid="${r.recommendationid}">
@@ -504,10 +511,16 @@ function detailHtml(r) {
     return `<span class="tag" style="color:var(--red);border-color:var(--red-dim);">${escapeHtml(label)}</span>`;
   }).join(' ');
 
+  const devResponseHtml = r.developer_response ? `
+        <div class="detail-dev-response">
+          <div class="detail-dev-response-label">💬 Ответ разработчика${r.timestamp_dev_responded ? ` (${fmtDate(r.timestamp_dev_responded)})` : ''}</div>
+          <div class="detail-dev-response-text">${escapeHtml(r.developer_response)}</div>
+        </div>` : '';
+
   return `
     <tr class="detail-row"><td colspan="6">
       <div class="detail-grid">
-        <div class="detail-text">${escapeHtml(r.review || '(пустой текст)')}</div>
+        <div class="detail-text">${escapeHtml(r.review || '(пустой текст)')}${devResponseHtml}</div>
         <div class="detail-meta">
           <div>steamid: ${r.steamid ? `<a href="https://steamcommunity.com/profiles/${r.steamid}" target="_blank" rel="noopener">${r.steamid}</a>` : '—'}</div>
           <div>playtime forever: ${fmtHours(r.playtime_forever)}</div>
@@ -629,6 +642,13 @@ function bindControls() {
     applyFiltersAndRender();
   });
 
+  const devResponseBtn = document.getElementById('filter-devresponse-only');
+  devResponseBtn.addEventListener('click', () => {
+    state.filters.devResponseOnly = !state.filters.devResponseOnly;
+    devResponseBtn.classList.toggle('active', state.filters.devResponseOnly);
+    applyFiltersAndRender();
+  });
+
   let searchTimer;
   document.getElementById('filter-search').addEventListener('input', e => {
     clearTimeout(searchTimer);
@@ -641,7 +661,8 @@ function bindControls() {
   document.getElementById('filter-reset').addEventListener('click', () => {
     state.filters = {
       vote: new Set(['all', 'up', 'down']),
-      bucket: '', minScore: 0, suspiciousOnly: false, freeOnly: false, dupeOnly: false, editedOnly: false, search: '',
+      bucket: '', minScore: 0, suspiciousOnly: false, freeOnly: false, dupeOnly: false, editedOnly: false,
+      devResponseOnly: false, search: '',
     };
     document.getElementById('filter-bucket').value = '';
     document.getElementById('filter-minscore').value = 0;
@@ -651,6 +672,7 @@ function bindControls() {
     document.getElementById('filter-free-only').classList.remove('active');
     document.getElementById('filter-dupe-only').classList.remove('active');
     document.getElementById('filter-edited-only').classList.remove('active');
+    document.getElementById('filter-devresponse-only').classList.remove('active');
     applyFiltersAndRender();
   });
 
