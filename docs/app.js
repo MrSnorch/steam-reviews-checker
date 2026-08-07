@@ -18,6 +18,8 @@ const state = {
     dupeOnly: false,
     editedOnly: false,
     devResponseOnly: false,
+    devResponseFrom: '',
+    devResponseTo: '',
     search: '',
   },
 };
@@ -415,6 +417,12 @@ function passesFilters(r) {
   if (f.dupeOnly && (!r.duplicate_cluster_size || r.duplicate_cluster_size < 2)) return false;
   if (f.editedOnly && !(r.suspicion_reasons || []).includes('edited_days_later')) return false;
   if (f.devResponseOnly && !r.developer_response) return false;
+  if (f.devResponseFrom || f.devResponseTo) {
+    if (!r.developer_response || !r.timestamp_dev_responded) return false;
+    const day = fmtDate(r.timestamp_dev_responded); // 'YYYY-MM-DD' string, sortable
+    if (f.devResponseFrom && day < f.devResponseFrom) return false;
+    if (f.devResponseTo && day > f.devResponseTo) return false;
+  }
   if (f.search) {
     const s = f.search.toLowerCase();
     if (!(r.review || '').toLowerCase().includes(s)) return false;
@@ -644,9 +652,20 @@ function bindControls() {
   });
 
   const devResponseBtn = document.getElementById('filter-devresponse-only');
+  const devResponseDateField = document.getElementById('field-devresponse-date');
   devResponseBtn.addEventListener('click', () => {
     state.filters.devResponseOnly = !state.filters.devResponseOnly;
     devResponseBtn.classList.toggle('active', state.filters.devResponseOnly);
+    devResponseDateField.style.display = state.filters.devResponseOnly ? 'flex' : 'none';
+    applyFiltersAndRender();
+  });
+
+  document.getElementById('filter-devresponse-from').addEventListener('change', e => {
+    state.filters.devResponseFrom = e.target.value;
+    applyFiltersAndRender();
+  });
+  document.getElementById('filter-devresponse-to').addEventListener('change', e => {
+    state.filters.devResponseTo = e.target.value;
     applyFiltersAndRender();
   });
 
@@ -663,11 +682,14 @@ function bindControls() {
     state.filters = {
       vote: new Set(['all', 'up', 'down']),
       bucket: '', minScore: 0, suspiciousOnly: false, freeOnly: false, dupeOnly: false, editedOnly: false,
-      devResponseOnly: false, search: '',
+      devResponseOnly: false, devResponseFrom: '', devResponseTo: '', search: '',
     };
     document.getElementById('filter-bucket').value = '';
     document.getElementById('filter-minscore').value = 0;
     document.getElementById('filter-search').value = '';
+    document.getElementById('filter-devresponse-from').value = '';
+    document.getElementById('filter-devresponse-to').value = '';
+    document.getElementById('field-devresponse-date').style.display = 'none';
     document.querySelectorAll('#filter-vote .chip').forEach(c => c.classList.add('active'));
     document.getElementById('filter-suspicious-only').classList.remove('active');
     document.getElementById('filter-free-only').classList.remove('active');
