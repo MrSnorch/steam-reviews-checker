@@ -523,6 +523,7 @@ function detailHtml(r) {
         <div class="detail-text">${escapeHtml(r.review || '(пустой текст)')}${devResponseHtml}</div>
         <div class="detail-meta">
           <div>steamid: ${r.steamid ? `<a href="https://steamcommunity.com/profiles/${r.steamid}" target="_blank" rel="noopener">${r.steamid}</a>` : '—'}</div>
+          <div>${r.steamid && state.data.appid ? `<a href="https://steamcommunity.com/profiles/${r.steamid}/recommended/${state.data.appid}" target="_blank" rel="noopener">↗ открыть отзыв в Steam</a>` : ''}</div>
           <div>playtime forever: ${fmtHours(r.playtime_forever)}</div>
           <div>playtime at review: ${fmtHours(r.playtime_at_review)}</div>
           <div>playtime last 2 weeks: ${fmtHours(r.playtime_last_two_weeks)}</div>
