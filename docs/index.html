@@ -135,6 +135,14 @@
           <label>Поиск по тексту</label>
           <input type="text" id="filter-search" placeholder="подстрока…">
         </div>
+        <div class="field" id="field-devresponse-date" style="display:none;">
+          <label>Дата ответа разработчика</label>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <input type="date" id="filter-devresponse-from">
+            <span style="color:var(--text-dimmer);">—</span>
+            <input type="date" id="filter-devresponse-to">
+          </div>
+        </div>
         <button class="reset-link" id="filter-reset">сбросить фильтры</button>
       </div>
 
