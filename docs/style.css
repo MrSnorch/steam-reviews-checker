@@ -286,7 +286,7 @@ header.top {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
-.field select, .field input[type=text], .field input[type=number] {
+.field select, .field input[type=text], .field input[type=number], .field input[type=date] {
   background: var(--bg);
   border: 1px solid var(--border);
   color: var(--text);
