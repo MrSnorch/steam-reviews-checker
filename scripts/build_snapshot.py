@@ -49,6 +49,8 @@ def build_summary(reviews: list[dict]) -> dict:
             base = reason.split("_size_")[0] if "_size_" in reason else reason
             reason_counts[base] += 1
 
+    dev_response_count = sum(1 for r in reviews if r.get("developer_response"))
+
     free_key_count = sum(1 for r in reviews if r.get("received_for_free"))
     not_steam_purchase = sum(1 for r in reviews if not r.get("steam_purchase"))
 
@@ -80,6 +82,7 @@ def build_summary(reviews: list[dict]) -> dict:
         "playtime_bucket_distribution_negative": dict(bucket_counts_neg),
         "language_distribution": dict(lang_counts.most_common(15)),
         "suspicion_reason_counts": dict(reason_counts.most_common()),
+        "dev_response_count": dev_response_count,
         "free_key_count": free_key_count,
         "not_steam_purchase_count": not_steam_purchase,
         "enrichment_coverage": len(enriched),

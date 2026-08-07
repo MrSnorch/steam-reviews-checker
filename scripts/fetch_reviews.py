@@ -90,6 +90,15 @@ def slim_review(raw: dict) -> dict:
     author = raw.get("author", {}) or {}
     for k in FIELDS_KEEP_AUTHOR:
         out[k] = author.get(k)
+
+    # When a developer has replied to a review, Steam includes these two
+    # top-level fields on the review object: "developer_response" (the reply
+    # text) and "timestamp_dev_responded" (unix timestamp of the reply).
+    # Both are absent entirely when there's no reply.
+    dev_response = raw.get("developer_response")
+    out["developer_response"] = dev_response if dev_response else None
+    out["timestamp_dev_responded"] = raw.get("timestamp_dev_responded") if dev_response else None
+
     return out
 
 
